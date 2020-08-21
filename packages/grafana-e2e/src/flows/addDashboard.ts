@@ -14,7 +14,7 @@ export interface AddDashboardConfig {
 export interface AddVariableConfig {
   constantValue?: string;
   dataSource?: string;
-  hide?: string;
+  hide: string;
   label?: string;
   name: string;
   query?: string;
@@ -86,6 +86,10 @@ export const addDashboard = (config?: Partial<AddDashboardConfig>): any => {
     });
 };
 
+export const VARIABLE_HIDE_LABEL = 'Label';
+export const VARIABLE_HIDE_NOTHING = '';
+export const VARIABLE_HIDE_VARIABLE = 'Variable';
+
 export const VARIABLE_TYPE_AD_HOC_FILTERS = 'Ad hoc filters';
 export const VARIABLE_TYPE_CONSTANT = 'Constant';
 export const VARIABLE_TYPE_DATASOURCE = 'Datasource';
@@ -93,6 +97,7 @@ export const VARIABLE_TYPE_QUERY = 'Query';
 
 const addVariable = (config: Partial<AddVariableConfig>, isFirst: boolean): any => {
   const fullConfig = {
+    hide: VARIABLE_HIDE_NOTHING,
     type: VARIABLE_TYPE_QUERY,
     ...config,
   } as AddVariableConfig;
