@@ -4,7 +4,15 @@ import { e2e } from '../index';
 import { getDashboardUid } from '../support/url';
 import { selectOption } from './selectOption';
 
+export interface AddAnnotationConfig {
+  dataSource: string;
+  name: string;
+  sources?: string;
+  tags?: string;
+}
+
 export interface AddDashboardConfig {
+  annotations: AddAnnotationConfig[];
   timeRange: DashboardTimeRangeConfig;
   timezone: string;
   title: string;
@@ -26,6 +34,7 @@ export interface AddVariableConfig {
 // @todo this actually returns type `Cypress.Chainable`
 export const addDashboard = (config?: Partial<AddDashboardConfig>): any => {
   const fullConfig = {
+    annotations: [],
     timeRange: {
       from: '2020-01-01 00:00:00',
       to: '2020-01-01 06:00:00',
@@ -36,7 +45,7 @@ export const addDashboard = (config?: Partial<AddDashboardConfig>): any => {
     ...config,
   } as AddDashboardConfig;
 
-  const { timeRange, timezone, title, variables } = fullConfig;
+  const { annotations, timeRange, timezone, title, variables } = fullConfig;
 
   e2e().logToConsole('Adding dashboard with title:', title);
 
@@ -47,6 +56,7 @@ export const addDashboard = (config?: Partial<AddDashboardConfig>): any => {
   // @todo use the time range picker's time zone control
   selectOption(e2e.pages.Dashboard.Settings.General.timezone(), timezone);
 
+  addAnnotations(annotations);
   addVariables(variables);
 
   e2e.components.BackButton.backArrow().click();
@@ -86,6 +96,61 @@ export const addDashboard = (config?: Partial<AddDashboardConfig>): any => {
     });
 };
 
+const addAnnotation = (config: AddAnnotationConfig, isFirst: boolean) => {
+  if (isFirst) {
+    e2e.pages.Dashboard.Settings.Annotations.List.addAnnotationCTA().click();
+  } else {
+    // @todo add to e2e-selectors and `aria-label`
+    e2e()
+      .contains('.btn', 'New')
+      .click();
+  }
+
+  const { dataSource, name, sources, tags } = config;
+
+  // @todo add to e2e-selectors and `aria-label`
+  e2e()
+    .contains('.gf-form', 'Data source')
+    .find('select')
+    .select(dataSource);
+
+  // @todo add to e2e-selectors and `aria-label`
+  e2e()
+    .contains('.gf-form', 'Name')
+    .find('input')
+    .type(name);
+
+  if (sources) {
+    // @todo add to e2e-selectors and `aria-label`
+    e2e()
+      .contains('.gf-form', 'Sources')
+      .find('input')
+      .type(sources);
+  }
+
+  if (tags) {
+    // @todo add to e2e-selectors and `aria-label`
+    e2e()
+      .contains('.gf-form', 'Tags')
+      .find('input')
+      .type(tags);
+  }
+
+  // @todo add to e2e-selectors and `aria-label`
+  e2e()
+    .contains('.btn', 'Add')
+    .click();
+};
+
+// @todo this actually returns type `Cypress.Chainable`
+const addAnnotations = (configs: AddAnnotationConfig[]): any => {
+  if (configs.length > 0) {
+    e2e.pages.Dashboard.Settings.General.sectionItems('Annotations').click();
+  }
+
+  return configs.map((config, i) => addAnnotation(config, i === 0));
+};
+
 export const VARIABLE_HIDE_LABEL = 'Label';
 export const VARIABLE_HIDE_NOTHING = '';
 export const VARIABLE_HIDE_VARIABLE = 'Variable';
@@ -95,6 +160,7 @@ export const VARIABLE_TYPE_CONSTANT = 'Constant';
 export const VARIABLE_TYPE_DATASOURCE = 'Datasource';
 export const VARIABLE_TYPE_QUERY = 'Query';
 
+// @todo this actually returns type `Cypress.Chainable`
 const addVariable = (config: Partial<AddVariableConfig>, isFirst: boolean): any => {
   const fullConfig = {
     hide: VARIABLE_HIDE_NOTHING,
@@ -150,6 +216,7 @@ const addVariable = (config: Partial<AddVariableConfig>, isFirst: boolean): any 
   return fullConfig;
 };
 
+// @todo this actually returns type `Cypress.Chainable`
 const addVariables = (configs: Array<Partial<AddVariableConfig>>): any => {
   if (configs.length > 0) {
     e2e.pages.Dashboard.Settings.General.sectionItems('Variables').click();
